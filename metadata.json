@@ -1,0 +1,6 @@
+{
+  "name": "FORGE X - Cross-Sense Autonomous Intelligence Platform",
+  "description": "Cross-modal autonomous industrial intelligence platform fusing vision, voice, IoT telemetry, and historical data with contradiction detection and verification loops.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
