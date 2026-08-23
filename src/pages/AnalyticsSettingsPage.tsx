@@ -1,19 +1,57 @@
-import React, { useState } from 'react';
-import { Sliders, Save, RefreshCw, Activity, Eye, Mic, History, Wrench, ShieldCheck, Database, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Sliders, 
+  Save, 
+  RefreshCw, 
+  Activity, 
+  Eye, 
+  Mic, 
+  History, 
+  Wrench, 
+  ShieldCheck, 
+  Database, 
+  Check, 
+  BarChart3, 
+  TrendingUp, 
+  TrendingDown, 
+  AlertTriangle,
+  Zap
+} from 'lucide-react';
 import { SystemWeights } from '../types';
 import { updateWeights } from '../services/api';
 
+const defaultSystemWeights: SystemWeights = {
+  sensorWeight: 0.30,
+  visionWeight: 0.25,
+  voiceWeight: 0.10,
+  historyWeight: 0.20,
+  maintenanceWeight: 0.15,
+};
+
 interface AnalyticsSettingsPageProps {
-  systemWeights: SystemWeights;
+  systemWeights?: SystemWeights;
   onUpdateWeights: (weights: SystemWeights) => void;
 }
 
 export const AnalyticsSettingsPage: React.FC<AnalyticsSettingsPageProps> = ({
-  systemWeights,
+  systemWeights = defaultSystemWeights,
   onUpdateWeights,
 }) => {
-  const [weights, setWeights] = useState<SystemWeights>(systemWeights);
+  const [weights, setWeights] = useState<SystemWeights>(() => ({
+    ...defaultSystemWeights,
+    ...(systemWeights || {}),
+  }));
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (systemWeights) {
+      setWeights((prev) => ({
+        ...defaultSystemWeights,
+        ...(prev || {}),
+        ...systemWeights,
+      }));
+    }
+  }, [systemWeights]);
 
   const handleChange = (key: keyof SystemWeights, val: number) => {
     setWeights((prev) => ({
@@ -31,24 +69,24 @@ export const AnalyticsSettingsPage: React.FC<AnalyticsSettingsPageProps> = ({
   };
 
   const sum = (
-    weights.sensorWeight +
-    weights.visionWeight +
-    weights.voiceWeight +
-    weights.historyWeight +
-    weights.maintenanceWeight
+    (weights?.sensorWeight ?? 0.30) +
+    (weights?.visionWeight ?? 0.25) +
+    (weights?.voiceWeight ?? 0.10) +
+    (weights?.historyWeight ?? 0.20) +
+    (weights?.maintenanceWeight ?? 0.15)
   ).toFixed(2);
 
   return (
-    <div className="space-y-4 pb-12">
+    <div className="space-y-4 pb-12 font-sans">
       {/* Header */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex flex-wrap items-center justify-between gap-3 shadow-lg">
         <div>
           <h2 className="text-base font-extrabold text-white flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-teal-400" />
-            <span>Platform Configuration & Fusion Weight Tuning</span>
+            <BarChart3 className="w-5 h-5 text-teal-400" />
+            <span>Enterprise Reliability Analytics & Cross-Sense Platform Tuning</span>
           </h2>
           <p className="text-xs text-slate-300 mt-0.5">
-            Calibrate multimodal sensory weights, PLC safety thresholds, and AI reasoning parameters
+            Calibrate multimodal sensory weights, PLC safety thresholds, and monitor fleet-wide contradiction resolution metrics
           </p>
         </div>
 
@@ -61,7 +99,54 @@ export const AnalyticsSettingsPage: React.FC<AnalyticsSettingsPageProps> = ({
         </button>
       </div>
 
-      {/* 2-Column Grid */}
+      {/* Enterprise Fleet Analytics Summary Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-md space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>Catastrophic Outages Averted</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div className="text-2xl font-black font-mono text-emerald-300">14 Assets</div>
+          <div className="text-[11px] text-emerald-400/80 font-medium flex items-center gap-1">
+            <TrendingUp className="w-3 h-3" /> +100% vs manual inspections
+          </div>
+        </div>
+
+        <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-md space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>Human Auditory Blindspots Caught</span>
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
+          </div>
+          <div className="text-2xl font-black font-mono text-amber-300">38 Events</div>
+          <div className="text-[11px] text-amber-400/80 font-medium flex items-center gap-1">
+            <TrendingDown className="w-3 h-3" /> Overcame "Sounds fine" false negatives
+          </div>
+        </div>
+
+        <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-md space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>Mean Time To Mitigation (MTTM)</span>
+            <Zap className="w-4 h-4 text-cyan-400" />
+          </div>
+          <div className="text-2xl font-black font-mono text-cyan-300">3.2 Seconds</div>
+          <div className="text-[11px] text-cyan-400/80 font-medium">
+            Autonomous VFD load de-rating
+          </div>
+        </div>
+
+        <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-md space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>Cross-Sense Fusion Accuracy</span>
+            <Activity className="w-4 h-4 text-indigo-400" />
+          </div>
+          <div className="text-2xl font-black font-mono text-indigo-300">99.4%</div>
+          <div className="text-[11px] text-indigo-400/80 font-medium">
+            Multi-modal verification match
+          </div>
+        </div>
+      </div>
+
+      {/* 2-Column Grid for Configuration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Modality Weights */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-md">
@@ -82,14 +167,14 @@ export const AnalyticsSettingsPage: React.FC<AnalyticsSettingsPageProps> = ({
                   <Activity className="w-3.5 h-3.5 text-sky-400" />
                   IoT Vibration / Temp Sensor Weight
                 </span>
-                <span className="font-mono text-sky-300 font-black">{(weights.sensorWeight * 100).toFixed(0)}%</span>
+                <span className="font-mono text-sky-300 font-black">{((weights?.sensorWeight ?? 0.30) * 100).toFixed(0)}%</span>
               </div>
               <input
                 type="range"
                 min={0.1}
                 max={0.6}
                 step={0.05}
-                value={weights.sensorWeight}
+                value={weights?.sensorWeight ?? 0.30}
                 onChange={(e) => handleChange('sensorWeight', parseFloat(e.target.value))}
                 className="w-full accent-sky-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />
@@ -102,14 +187,14 @@ export const AnalyticsSettingsPage: React.FC<AnalyticsSettingsPageProps> = ({
                   <Eye className="w-3.5 h-3.5 text-indigo-400" />
                   Optical Camera & Fluid Seal Weight
                 </span>
-                <span className="font-mono text-indigo-300 font-black">{(weights.visionWeight * 100).toFixed(0)}%</span>
+                <span className="font-mono text-indigo-300 font-black">{((weights?.visionWeight ?? 0.25) * 100).toFixed(0)}%</span>
               </div>
               <input
                 type="range"
                 min={0.1}
                 max={0.6}
                 step={0.05}
-                value={weights.visionWeight}
+                value={weights?.visionWeight ?? 0.25}
                 onChange={(e) => handleChange('visionWeight', parseFloat(e.target.value))}
                 className="w-full accent-indigo-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />
@@ -122,14 +207,14 @@ export const AnalyticsSettingsPage: React.FC<AnalyticsSettingsPageProps> = ({
                   <Mic className="w-3.5 h-3.5 text-amber-400" />
                   Human Technician Voice Weight
                 </span>
-                <span className="font-mono text-amber-300 font-black">{(weights.voiceWeight * 100).toFixed(0)}%</span>
+                <span className="font-mono text-amber-300 font-black">{((weights?.voiceWeight ?? 0.10) * 100).toFixed(0)}%</span>
               </div>
               <input
                 type="range"
                 min={0.05}
                 max={0.4}
                 step={0.05}
-                value={weights.voiceWeight}
+                value={weights?.voiceWeight ?? 0.10}
                 onChange={(e) => handleChange('voiceWeight', parseFloat(e.target.value))}
                 className="w-full accent-amber-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />
@@ -142,14 +227,14 @@ export const AnalyticsSettingsPage: React.FC<AnalyticsSettingsPageProps> = ({
                   <History className="w-3.5 h-3.5 text-emerald-400" />
                   Historical Precursor ML Weight
                 </span>
-                <span className="font-mono text-emerald-300 font-black">{(weights.historyWeight * 100).toFixed(0)}%</span>
+                <span className="font-mono text-emerald-300 font-black">{((weights?.historyWeight ?? 0.20) * 100).toFixed(0)}%</span>
               </div>
               <input
                 type="range"
                 min={0.05}
                 max={0.4}
                 step={0.05}
-                value={weights.historyWeight}
+                value={weights?.historyWeight ?? 0.20}
                 onChange={(e) => handleChange('historyWeight', parseFloat(e.target.value))}
                 className="w-full accent-emerald-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />
@@ -162,14 +247,14 @@ export const AnalyticsSettingsPage: React.FC<AnalyticsSettingsPageProps> = ({
                   <Wrench className="w-3.5 h-3.5 text-rose-400" />
                   Maintenance Cycle & Wear Logs Weight
                 </span>
-                <span className="font-mono text-rose-300 font-black">{(weights.maintenanceWeight * 100).toFixed(0)}%</span>
+                <span className="font-mono text-rose-300 font-black">{((weights?.maintenanceWeight ?? 0.15) * 100).toFixed(0)}%</span>
               </div>
               <input
                 type="range"
                 min={0.05}
                 max={0.4}
                 step={0.05}
-                value={weights.maintenanceWeight}
+                value={weights?.maintenanceWeight ?? 0.15}
                 onChange={(e) => handleChange('maintenanceWeight', parseFloat(e.target.value))}
                 className="w-full accent-rose-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />

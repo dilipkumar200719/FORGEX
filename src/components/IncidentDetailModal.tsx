@@ -207,7 +207,7 @@ export const IncidentDetailModal: React.FC<IncidentDetailModalProps> = ({
           <div className="flex gap-2 pt-1">
             <input
               type="text"
-              value={newNote}
+              value={newNote || ''}
               onChange={(e) => setNewNote(e.target.value)}
               placeholder="Add technician comment or inspection finding..."
               className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500"

@@ -9,6 +9,13 @@ import { runCrossSenseFusion } from './server/crossSenseEngine.js';
 import { executeAutonomousAction } from './server/actionEngine.js';
 import { startVerification, completeVerification } from './server/verificationEngine.js';
 import { analyzeMachineImageWithGemini, analyzeVoiceTranscriptWithGemini } from './server/gemini.js';
+import {
+  detectSensorAnomalies,
+  evaluateContradictions,
+  diagnoseRootCauses,
+  runDeterministicEndToEndTest,
+  DETERMINISTIC_DATASET,
+} from './server/intelligence/index.js';
 
 dotenv.config();
 
@@ -357,6 +364,61 @@ app.post('/api/weights', (req: Request, res: Response) => {
   }
   broadcastSSE('stateChange', { systemWeights: state.systemWeights, latestAnalysis: state.latestAnalysis });
   res.json({ success: true, systemWeights: state.systemWeights });
+});
+
+// =========================================================================
+// FORGE X INTELLIGENCE LAYER TEST & DIAGNOSTICS APIS
+// =========================================================================
+
+// Run Complete 8-Stage End-to-End Intelligence Flow Test
+app.get('/api/intelligence/test-flow', (req: Request, res: Response) => {
+  const machineId = (req.query.machineId as string) || 'PUMP-042';
+  try {
+    const report = runDeterministicEndToEndTest(machineId);
+    broadcastSSE('stateChange', {
+      machines: state.machines,
+      incidents: state.incidents,
+      timeline: state.timeline,
+      latestAnalysis: state.latestAnalysis,
+      verifications: state.verifications,
+    });
+    res.json({ success: true, report });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/intelligence/test-flow', (req: Request, res: Response) => {
+  const { machineId = 'PUMP-042' } = req.body;
+  try {
+    const report = runDeterministicEndToEndTest(machineId);
+    broadcastSSE('stateChange', {
+      machines: state.machines,
+      incidents: state.incidents,
+      timeline: state.timeline,
+      latestAnalysis: state.latestAnalysis,
+      verifications: state.verifications,
+    });
+    res.json({ success: true, report });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Retrieve Deterministic Dataset
+app.get('/api/intelligence/dataset', (req: Request, res: Response) => {
+  res.json({ success: true, dataset: DETERMINISTIC_DATASET });
+});
+
+// Single-Shot Sensor Anomaly Detection API
+app.post('/api/intelligence/anomaly', (req: Request, res: Response) => {
+  const { machineId = 'PUMP-042', telemetry } = req.body;
+  const machine = state.machines.find((m) => m.id === machineId);
+  if (!machine) {
+    return res.status(404).json({ success: false, error: 'Machine not found' });
+  }
+  const result = detectSensorAnomalies(machine, telemetry);
+  res.json({ success: true, result });
 });
 
 // Mount Vite middleware or Static Server

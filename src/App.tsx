@@ -274,6 +274,7 @@ function AppContent() {
           <DecisionsPage
             machine={currentMachine}
             analysis={currentAnalysis}
+            timeline={timeline}
             onExecuteAction={handleExecuteAction}
           />
         )}

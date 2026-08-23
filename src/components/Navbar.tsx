@@ -92,7 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="text-slate-400 text-[11px] font-medium">Asset:</span>
             <select
               id="asset-selector"
-              value={selectedMachineId}
+              value={selectedMachineId || ''}
               onChange={(e) => setSelectedMachineId(e.target.value)}
               className="bg-transparent text-cyan-300 font-mono text-xs font-bold focus:outline-none cursor-pointer"
             >

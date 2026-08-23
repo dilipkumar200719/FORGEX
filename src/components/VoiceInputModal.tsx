@@ -52,8 +52,8 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
       recognition.onstart = () => setIsRecording(true);
       recognition.onresult = (event: any) => {
-        const spoken = event.results[0][0].transcript;
-        setTranscript(spoken);
+        const spoken = event.results?.[0]?.[0]?.transcript || '';
+        if (spoken) setTranscript(spoken);
         setIsRecording(false);
       };
       recognition.onerror = () => setIsRecording(false);
@@ -123,7 +123,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
           <div className="relative">
             <textarea
               rows={3}
-              value={transcript}
+              value={transcript || ''}
               onChange={(e) => setTranscript(e.target.value)}
               placeholder="e.g. 'The machine sounds normal.' or speak into your microphone..."
               className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500"

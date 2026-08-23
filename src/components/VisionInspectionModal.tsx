@@ -60,7 +60,7 @@ export const VisionInspectionModal: React.FC<VisionInspectionModalProps> = ({
   const activeImage =
     selectedPreset === 'custom' && customImage
       ? customImage
-      : presets.find((p) => p.id === selectedPreset)?.svg || presets[0].svg;
+      : presets.find((p) => p.id === selectedPreset)?.svg || presets[0]?.svg || '';
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);

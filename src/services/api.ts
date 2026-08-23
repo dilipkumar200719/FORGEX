@@ -118,6 +118,16 @@ export async function updateWeights(weights: SystemWeights) {
   return res.json();
 }
 
+export async function runIntelligenceFlowTest(machineId: string = 'PUMP-042') {
+  const res = await fetch(`/api/intelligence/test-flow?machineId=${encodeURIComponent(machineId)}`);
+  return res.json();
+}
+
+export async function fetchDeterministicDataset() {
+  const res = await fetch('/api/intelligence/dataset');
+  return res.json();
+}
+
 export function subscribeToTelemetryStream(callbacks: {
   onTelemetry?: (data: any) => void;
   onStateChange?: (data: any) => void;

@@ -3,21 +3,37 @@ import { Activity, Thermometer, Zap, RotateCw, BarChart3, TrendingUp } from 'luc
 import { TelemetrySnapshot } from '../types';
 
 interface TelemetryChartProps {
-  history: TelemetrySnapshot[];
-  normalRanges: {
-    vibration: [number, number];
-    temperature: [number, number];
-    current: [number, number];
-    pressure: [number, number];
-    rpm: [number, number];
+  history?: TelemetrySnapshot[];
+  normalRanges?: {
+    vibration?: [number, number];
+    temperature?: [number, number];
+    current?: [number, number];
+    pressure?: [number, number];
+    rpm?: [number, number];
   };
 }
 
 export const TelemetryChart: React.FC<TelemetryChartProps> = ({
-  history,
+  history = [],
   normalRanges,
 }) => {
   const [activeMetric, setActiveMetric] = useState<'vibration' | 'temperature' | 'current' | 'rpm'>('vibration');
+
+  const defaultRanges = {
+    vibration: [2.0, 7.5] as [number, number],
+    temperature: [45, 75] as [number, number],
+    current: [4.0, 8.5] as [number, number],
+    pressure: [4.0, 7.0] as [number, number],
+    rpm: [1400, 1550] as [number, number],
+  };
+
+  const safeRanges = {
+    vibration: normalRanges?.vibration || defaultRanges.vibration,
+    temperature: normalRanges?.temperature || defaultRanges.temperature,
+    current: normalRanges?.current || defaultRanges.current,
+    pressure: normalRanges?.pressure || defaultRanges.pressure,
+    rpm: normalRanges?.rpm || defaultRanges.rpm,
+  };
 
   const metricConfigs = {
     vibration: {
@@ -27,7 +43,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       accent: 'text-sky-400',
       activeBtn: 'bg-sky-950/80 border-sky-500 text-sky-300 shadow-md shadow-sky-950',
       icon: Activity,
-      range: normalRanges.vibration,
+      range: safeRanges.vibration,
       min: 0,
       max: 25,
       unit: 'mm/s',
@@ -39,7 +55,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       accent: 'text-rose-400',
       activeBtn: 'bg-rose-950/80 border-rose-500 text-rose-300 shadow-md shadow-rose-950',
       icon: Thermometer,
-      range: normalRanges.temperature,
+      range: safeRanges.temperature,
       min: 20,
       max: 120,
       unit: '°C',
@@ -51,7 +67,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       accent: 'text-amber-400',
       activeBtn: 'bg-amber-950/80 border-amber-500 text-amber-300 shadow-md shadow-amber-950',
       icon: Zap,
-      range: normalRanges.current,
+      range: safeRanges.current,
       min: 0,
       max: 15,
       unit: 'A',
@@ -63,7 +79,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       accent: 'text-emerald-400',
       activeBtn: 'bg-emerald-950/80 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-950',
       icon: RotateCw,
-      range: normalRanges.rpm,
+      range: safeRanges.rpm,
       min: 500,
       max: 2000,
       unit: 'RPM',
@@ -71,7 +87,11 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   };
 
   const cfg = metricConfigs[activeMetric];
-  const dataPoints = history.slice(-25); // latest 25 snapshots
+  const safeHistory = history && Array.isArray(history) && history.length > 0 ? history : [
+    { timestamp: Date.now() - 5000, vibration: 5.6, temperature: 62.4, current: 6.4, pressure: 5.2, rpm: 1480 },
+    { timestamp: Date.now(), vibration: 5.6, temperature: 62.4, current: 6.4, pressure: 5.2, rpm: 1480 },
+  ];
+  const dataPoints = safeHistory.slice(-25); // latest 25 snapshots
 
   // SVG Chart Dimensions
   const width = 500;
@@ -90,12 +110,14 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   };
 
   // Generate SVG Path
-  const points = dataPoints.map((d, i) => `${getX(i)},${getY(d[activeMetric])}`).join(' ');
-  const areaPoints = `${getX(0)},${height - padding} ${points} ${getX(dataPoints.length - 1)},${height - padding}`;
+  const points = dataPoints.map((d, i) => `${getX(i)},${getY(d[activeMetric] ?? 0)}`).join(' ');
+  const areaPoints = `${getX(0)},${height - padding} ${points} ${getX(Math.max(0, dataPoints.length - 1))},${height - padding}`;
 
   const currentVal = dataPoints[dataPoints.length - 1]?.[activeMetric] ?? 0;
-  const safeMinY = getY(cfg.range[0]);
-  const safeMaxY = getY(cfg.range[1]);
+  const safeRangeMin = cfg.range?.[0] ?? cfg.min;
+  const safeRangeMax = cfg.range?.[1] ?? cfg.max;
+  const safeMinY = getY(safeRangeMin);
+  const safeMaxY = getY(safeRangeMax);
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 text-slate-100 shadow-xl space-y-3">
@@ -148,7 +170,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           }}
         >
           <span className="absolute right-2 top-0.5 text-[9px] font-mono text-emerald-400 font-bold">
-            Safe Operating Zone ({cfg.range[0]}-{cfg.range[1]} {cfg.unit})
+            Safe Operating Zone ({safeRangeMin}-{safeRangeMax} {cfg.unit})
           </span>
         </div>
 

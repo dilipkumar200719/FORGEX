@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Layers, 
   Sliders, 
@@ -21,25 +21,46 @@ import { runCrossSenseAnalysis, updateWeights } from '../services/api';
 import { EvidenceMatrix } from '../components/EvidenceMatrix';
 import { ContradictionBanner } from '../components/ContradictionBanner';
 
+const defaultSystemWeights: SystemWeights = {
+  sensorWeight: 0.30,
+  visionWeight: 0.25,
+  voiceWeight: 0.10,
+  historyWeight: 0.20,
+  maintenanceWeight: 0.15,
+};
+
 interface CrossSenseLabProps {
   machine: Machine;
-  systemWeights: SystemWeights;
+  systemWeights?: SystemWeights;
   analysis?: CrossSenseAnalysis;
   onAnalysisUpdated?: (analysis: CrossSenseAnalysis) => void;
 }
 
 export const CrossSenseLab: React.FC<CrossSenseLabProps> = ({
   machine,
-  systemWeights,
+  systemWeights = defaultSystemWeights,
   analysis,
   onAnalysisUpdated,
 }) => {
-  const [weights, setWeights] = useState<SystemWeights>(systemWeights);
+  const [weights, setWeights] = useState<SystemWeights>(() => ({
+    ...defaultSystemWeights,
+    ...(systemWeights || {}),
+  }));
   const [voiceOverride, setVoiceOverride] = useState<string>('The machine sounds normal.');
   const [visionAnomaly, setVisionAnomaly] = useState<boolean>(true);
   const [sensorAnomaly, setSensorAnomaly] = useState<boolean>(true);
   const [isCalculating, setIsCalculating] = useState(false);
   const [liveAnalysis, setLiveAnalysis] = useState<CrossSenseAnalysis | undefined>(analysis);
+
+  useEffect(() => {
+    if (systemWeights) {
+      setWeights((prev) => ({
+        ...defaultSystemWeights,
+        ...(prev || {}),
+        ...systemWeights,
+      }));
+    }
+  }, [systemWeights]);
 
   const handleSliderChange = (key: keyof SystemWeights, value: number) => {
     setWeights((prev) => ({
@@ -209,7 +230,7 @@ export const CrossSenseLab: React.FC<CrossSenseLabProps> = ({
                   min={0.1}
                   max={0.6}
                   step={0.05}
-                  value={weights.sensorWeight}
+                  value={weights.sensorWeight ?? 0.30}
                   onChange={(e) => handleSliderChange('sensorWeight', parseFloat(e.target.value))}
                   className="w-full accent-sky-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -222,14 +243,14 @@ export const CrossSenseLab: React.FC<CrossSenseLabProps> = ({
                     <Eye className="w-3.5 h-3.5 text-indigo-400" />
                     Optical / Thermal Vision
                   </span>
-                  <span className="font-mono text-indigo-300 font-black">{(weights.visionWeight * 100).toFixed(0)}%</span>
+                  <span className="font-mono text-indigo-300 font-black">{((weights.visionWeight ?? 0.25) * 100).toFixed(0)}%</span>
                 </div>
                 <input
                   type="range"
                   min={0.1}
                   max={0.6}
                   step={0.05}
-                  value={weights.visionWeight}
+                  value={weights.visionWeight ?? 0.25}
                   onChange={(e) => handleSliderChange('visionWeight', parseFloat(e.target.value))}
                   className="w-full accent-indigo-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -242,14 +263,14 @@ export const CrossSenseLab: React.FC<CrossSenseLabProps> = ({
                     <Mic className="w-3.5 h-3.5 text-amber-400" />
                     Human Voice Reports
                   </span>
-                  <span className="font-mono text-amber-300 font-black">{(weights.voiceWeight * 100).toFixed(0)}%</span>
+                  <span className="font-mono text-amber-300 font-black">{((weights.voiceWeight ?? 0.10) * 100).toFixed(0)}%</span>
                 </div>
                 <input
                   type="range"
                   min={0.05}
                   max={0.4}
                   step={0.05}
-                  value={weights.voiceWeight}
+                  value={weights.voiceWeight ?? 0.10}
                   onChange={(e) => handleSliderChange('voiceWeight', parseFloat(e.target.value))}
                   className="w-full accent-amber-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -262,14 +283,14 @@ export const CrossSenseLab: React.FC<CrossSenseLabProps> = ({
                     <History className="w-3.5 h-3.5 text-emerald-400" />
                     ML Precursor History
                   </span>
-                  <span className="font-mono text-emerald-300 font-black">{(weights.historyWeight * 100).toFixed(0)}%</span>
+                  <span className="font-mono text-emerald-300 font-black">{((weights.historyWeight ?? 0.20) * 100).toFixed(0)}%</span>
                 </div>
                 <input
                   type="range"
                   min={0.05}
                   max={0.4}
                   step={0.05}
-                  value={weights.historyWeight}
+                  value={weights.historyWeight ?? 0.20}
                   onChange={(e) => handleSliderChange('historyWeight', parseFloat(e.target.value))}
                   className="w-full accent-emerald-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -282,14 +303,14 @@ export const CrossSenseLab: React.FC<CrossSenseLabProps> = ({
                     <Wrench className="w-3.5 h-3.5 text-rose-400" />
                     Maintenance Life Cycle Logs
                   </span>
-                  <span className="font-mono text-rose-300 font-black">{(weights.maintenanceWeight * 100).toFixed(0)}%</span>
+                  <span className="font-mono text-rose-300 font-black">{((weights.maintenanceWeight ?? 0.15) * 100).toFixed(0)}%</span>
                 </div>
                 <input
                   type="range"
                   min={0.05}
                   max={0.4}
                   step={0.05}
-                  value={weights.maintenanceWeight}
+                  value={weights.maintenanceWeight ?? 0.15}
                   onChange={(e) => handleSliderChange('maintenanceWeight', parseFloat(e.target.value))}
                   className="w-full accent-rose-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -307,7 +328,7 @@ export const CrossSenseLab: React.FC<CrossSenseLabProps> = ({
             <div className="space-y-2 text-xs">
               <label className="block text-slate-300 font-bold">Technician Voice Observation Transcript:</label>
               <textarea
-                value={voiceOverride}
+                value={voiceOverride || ''}
                 onChange={(e) => setVoiceOverride(e.target.value)}
                 rows={2}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-cyan-400"
